@@ -37,6 +37,7 @@
 const char* ssid = "SFR_EC58";
 const char* password = "96wwza4yfz24qhtc4mxq";
 
+const int GPIO_SWITCH= 16;
 
 FtpServer ftpSrv;   //set #define FTP_DEBUG in ESP32FtpServer.h to see ftp verbose on serial
 
@@ -49,7 +50,7 @@ FtpServer ftpSrv;   //set #define FTP_DEBUG in ESP32FtpServer.h to see ftp verbo
 
 void setup(void){
   Serial.begin(115200);
-
+ pinMode( GPIO_SWITCH, INPUT_PULLUP );
 
   WiFi.begin(ssid, password);
   Serial.println("");
@@ -73,10 +74,31 @@ void setup(void){
       Serial.println("SD opened!");
       ftpSrv.begin("esp32","esp32");    //username, password for ftp.  set ports in ESP32FtpServer.h  (default 21, 50009 for PASV)
   }    
+
+  int GPIO_12 = digitalRead(GPIO_SWITCH);
+
+  Serial.println(GPIO_12);
+
+  while (GPIO_12==0)
+  {
+      ftpSrv.handleFTP(); 
+      GPIO_12 = digitalRead(GPIO_SWITCH);
+  }
+
+
+    // Bind Wakeup to GPIO13 going HIGH
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 1);
+  
+  delay(2000);
+  Serial.println("Going to sleep now");
+  delay(2000);
+  esp_deep_sleep_start();
+  Serial.println("This will never be printed");
 }
 
 void loop(void){
-  ftpSrv.handleFTP();        //make sure in loop you call handleFTP()!!   
+         //make sure in loop you call handleFTP()!!   
+
 
 }
 
